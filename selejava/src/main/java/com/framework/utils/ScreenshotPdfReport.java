@@ -2,6 +2,8 @@ package com.framework.utils;
 
 import com.framework.constants.AppConstants;
 import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
 import org.slf4j.Logger;
@@ -54,6 +56,18 @@ public class ScreenshotPdfReport {
 public void addStep(String stepDescription) {
     entries.add(new ScreenshotEntry(stepDescription));  // ← add to list, not toString
     log.info("Added step to report: {}", stepDescription);
+}
+
+
+/**
+ * Adds a visually distinct title block for each test case.
+ * Call this at the start of each test before adding steps or screenshots.
+ *
+ * @param testName The test method name or description
+ */
+public void addTestCaseTitle(String testName) {
+    entries.add(new ScreenshotEntry(testName, ScreenshotEntry.Type.TITLE));
+    log.info("Added test case title: {}", testName);
 }
 
     /**
@@ -125,42 +139,74 @@ public void addStep(String stepDescription) {
 private void addScreenshotPage(Document document, ScreenshotEntry entry)
         throws DocumentException, IOException {
 
-    Font labelFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.BLACK);
-    Font pathFont  = new Font(Font.FontFamily.HELVETICA, 8,  Font.ITALIC, BaseColor.GRAY);
-    Font stepFont  = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.DARK_GRAY);
+    Font titleFont     = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD,  BaseColor.WHITE);
+    Font labelFont     = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD);
+    Font stepFont      = new Font(Font.FontFamily.HELVETICA, 11, Font.NORMAL, BaseColor.DARK_GRAY);
+    Font pathFont      = new Font(Font.FontFamily.HELVETICA,  8, Font.ITALIC, BaseColor.GRAY);
 
-    if (entry.type == ScreenshotEntry.Type.TEXT) {
-        // Text-only entry — no image, no new page
-        Paragraph step = new Paragraph(entry.description, stepFont);
-        step.setSpacingBefore(6);
-        step.setSpacingAfter(6);
-        document.add(step);
+    switch (entry.type) {
 
-    } else {
-        // Screenshot entry — label + image + new page
-        document.add(new Paragraph("Capture: " + entry.description, labelFont));
-        document.add(new Paragraph(entry.path, pathFont));
-        document.add(new Paragraph("\n"));
+        case TITLE -> {
+            // Full-width dark banner with test name
+            Paragraph title = new Paragraph("TEST: " + entry.description, titleFont);
+            title.setAlignment(Element.ALIGN_LEFT);
+            title.setSpacingBefore(20);
+            title.setSpacingAfter(10);
 
-        Image image = Image.getInstance(entry.path);
-        image.scaleToFit(
-            document.getPageSize().getWidth()  - 40,
-            document.getPageSize().getHeight() - 100
-        );
-        image.setAlignment(Element.ALIGN_CENTER);
-        document.add(image);
-        document.newPage();
+            PdfPTable banner = new PdfPTable(1);
+            banner.setWidthPercentage(100);
+
+            PdfPCell cell = new PdfPCell();
+            cell.setBackgroundColor(new BaseColor(33, 37, 41));   // dark grey
+            cell.setPadding(10);
+            cell.setBorder(Rectangle.NO_BORDER);
+            cell.addElement(title);
+            banner.addCell(cell);
+
+            document.add(banner);
+            document.add(new Paragraph("\n"));
+        }
+
+        case TEXT -> {
+            Paragraph step = new Paragraph("► " + entry.description, stepFont);
+            step.setSpacingBefore(6);
+            step.setSpacingAfter(6);
+            document.add(step);
+        }
+
+        case SCREENSHOT -> {
+            document.add(new Paragraph(entry.description, labelFont));
+            document.add(new Paragraph(entry.path, pathFont));
+            document.add(new Paragraph("\n"));
+
+            Image image = Image.getInstance(entry.path);
+            image.scaleToFit(
+                document.getPageSize().getWidth()  - 40,
+                document.getPageSize().getHeight() - 100
+            );
+            image.setAlignment(Element.ALIGN_CENTER);
+            document.add(image);
+            document.newPage();
+        }
     }
 }
     // -------------------------------------------------------------------------
     // Inner record
     // -------------------------------------------------------------------------
 private static class ScreenshotEntry {
-    enum Type { SCREENSHOT, TEXT }
+
+    enum Type { TITLE, SCREENSHOT, TEXT }
 
     final Type   type;
     final String description;
-    final String path;          // null for TEXT entries
+    final String path;
+
+    // Title entry
+    ScreenshotEntry(String description, Type type) {
+        this.type        = type;
+        this.path        = null;
+        this.description = description;
+    }
 
     // Screenshot entry
     ScreenshotEntry(String path, String description) {

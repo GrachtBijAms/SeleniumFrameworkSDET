@@ -38,7 +38,7 @@
         @BeforeMethod
         public void setUp(Method method) {
             DriverManager.initDriver();
-            pdfReport.addStep(null);
+            pdfReport.addTestCaseTitle(method.getName());
             ReportManager.createTest(method.getName());
             ReportManager.logInfo("Test Started - " + method.getName());
 
