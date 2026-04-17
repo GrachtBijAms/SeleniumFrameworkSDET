@@ -21,12 +21,14 @@
 
         @BeforeSuite
         public void beforeSuite() {
+                        pdfReport = new ScreenshotPdfReport("TestExecutionReport.pdf");
             ReportManager.initReports();
             log.info("Starting test suite execution");
         }
 
         @AfterSuite
         public void afterSuite() {
+                        pdfReport.generate();
             ReportManager.flushReports();
             log.info("Test suite execution completed");
         }
@@ -36,9 +38,10 @@
         @BeforeMethod
         public void setUp(Method method) {
             DriverManager.initDriver();
+            pdfReport.addStep(null);
             ReportManager.createTest(method.getName());
             ReportManager.logInfo("Test Started - " + method.getName());
-            pdfReport = new ScreenshotPdfReport(method.getName());
+
             log.info("Test started: {}", method.getName());
         }
 
@@ -55,7 +58,7 @@
             }else if(result.getStatus() == ITestResult.SKIP){
                 ReportManager.logSkip("Test Skipped - " + result.getName());
             }
-            pdfReport.generate();
+            //pdfReport.generate();
             DriverManager.quitDriver();
         } 
 

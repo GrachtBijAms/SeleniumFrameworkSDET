@@ -125,20 +125,20 @@ public void addStep(String stepDescription) {
 private void addScreenshotPage(Document document, ScreenshotEntry entry)
         throws DocumentException, IOException {
 
-    Font labelFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD);
+    Font labelFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.BLACK);
     Font pathFont  = new Font(Font.FontFamily.HELVETICA, 8,  Font.ITALIC, BaseColor.GRAY);
-    Font stepFont  = new Font(Font.FontFamily.HELVETICA, 11, Font.NORMAL, BaseColor.DARK_GRAY);
+    Font stepFont  = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.DARK_GRAY);
 
     if (entry.type == ScreenshotEntry.Type.TEXT) {
         // Text-only entry — no image, no new page
-        Paragraph step = new Paragraph("► " + entry.description, stepFont);
+        Paragraph step = new Paragraph(entry.description, stepFont);
         step.setSpacingBefore(6);
         step.setSpacingAfter(6);
         document.add(step);
 
     } else {
         // Screenshot entry — label + image + new page
-        document.add(new Paragraph(entry.description, labelFont));
+        document.add(new Paragraph("Capture: " + entry.description, labelFont));
         document.add(new Paragraph(entry.path, pathFont));
         document.add(new Paragraph("\n"));
 
