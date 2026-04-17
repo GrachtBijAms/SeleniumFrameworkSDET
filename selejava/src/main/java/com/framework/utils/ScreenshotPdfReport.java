@@ -140,8 +140,8 @@ private void addScreenshotPage(Document document, ScreenshotEntry entry)
         throws DocumentException, IOException {
 
     Font titleFont     = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD,  BaseColor.WHITE);
-    Font labelFont     = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD);
-    Font stepFont      = new Font(Font.FontFamily.HELVETICA, 11, Font.NORMAL, BaseColor.DARK_GRAY);
+    Font labelFont     = new Font(Font.FontFamily.HELVETICA, 11, Font.NORMAL, BaseColor.DARK_GRAY);
+    Font stepFont      = new Font(Font.FontFamily.HELVETICA, 11, Font.NORMAL, BaseColor.BLACK);
     Font pathFont      = new Font(Font.FontFamily.HELVETICA,  8, Font.ITALIC, BaseColor.GRAY);
 
     switch (entry.type) {
@@ -168,14 +168,14 @@ private void addScreenshotPage(Document document, ScreenshotEntry entry)
         }
 
         case TEXT -> {
-            Paragraph step = new Paragraph("► " + entry.description, stepFont);
+            Paragraph step = new Paragraph("Step: " + entry.description, stepFont);
             step.setSpacingBefore(6);
             step.setSpacingAfter(6);
             document.add(step);
         }
 
         case SCREENSHOT -> {
-            document.add(new Paragraph(entry.description, labelFont));
+            document.add(new Paragraph("Screenshot: " + entry.description, labelFont));
             document.add(new Paragraph(entry.path, pathFont));
             document.add(new Paragraph("\n"));
 

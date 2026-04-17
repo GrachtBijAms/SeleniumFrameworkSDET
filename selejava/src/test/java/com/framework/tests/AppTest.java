@@ -19,15 +19,15 @@ public class AppTest extends BaseTest{
         // For example, you can create an instance of your LoginPage and call the login method.
          LoginPage loginPage = new LoginPage(getDriver());
          loginPage.navigateToLoginPage();
-          pdfReport.addStep("Step 1 — Navigated to login page"); 
-         pdfReport.addScreenshot(ScreenshotUtil.capture("Navigate-to-LoginPage"), "Step Login Test Screenshot");
+          pdfReport.addStep("Navigated to login page"); 
+         pdfReport.addScreenshot(ScreenshotUtil.capture("Navigate-to-LoginPage"), "Navigate to Login Page");
          
          loginPage.login(AppConstants.VALID_USERNAME, AppConstants.VALID_PASSWORD);
-         pdfReport.addStep("Step 2 — Entered Valid Credentials");
+         pdfReport.addStep("Entered Valid Credentials");
 
-        pdfReport.addStep("Step 3 End");
+        pdfReport.addStep("Login Attempted");
          Assert.assertTrue(loginPage.isLoginHeaderDisplayed(), "Login header is not displayed, login might have failed.");
-         pdfReport.addScreenshot(ScreenshotUtil.capture("Login Success"), "Step Login Test Screenshot");
+         pdfReport.addScreenshot(ScreenshotUtil.capture("Login Success"), "Success Login Test Screenshot");
 
         }
 
@@ -47,12 +47,17 @@ public class AppTest extends BaseTest{
         // This is a placeholder test method. You can implement your invalid login test here.
         // For example, you can create an instance of your LoginPage and call the login method with invalid credentials.
          LoginPage loginPage = new LoginPage(getDriver());
+         pdfReport.addStep("Navigated to login page"); 
          loginPage.navigateToLoginPage();
-         pdfReport.addScreenshot(ScreenshotUtil.capture("Navigate-to-LoginPage"), "Step Invalid Login Test Screenshot");
+         
+         pdfReport.addScreenshot(ScreenshotUtil.capture("Navigate-to-LoginPage"), "Navigate to Login Page");
+         
+         pdfReport.addStep("Attempted login with invalid credentials: " + username + " / " + password);
          loginPage.login(username, password);
+         
          Assert.assertEquals(loginPage.getErrorMessage(), expectedMessage, "Error message does not match expected message for invalid login.");
-         pdfReport.addScreenshot(ScreenshotUtil.capture("invalidLoginTest"), "Step Invalid Login Test Screenshot");
-
+         pdfReport.addScreenshot(ScreenshotUtil.capture("invalidLoginTest"), "Invalid Login Test Screenshot");
+             pdfReport.addStep("Verified the error message");
     } 
 
 }
