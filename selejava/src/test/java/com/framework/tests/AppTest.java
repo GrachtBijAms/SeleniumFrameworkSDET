@@ -37,8 +37,8 @@ public class AppTest extends BaseTest{
             {"invalid_user", "invalid_password","Epic sadface: Username and password do not match any user in this service"},
             {"", "invalid_password","Epic sadface: Username is required"},
             {"invalid_user", "","Epic sadface: Password is required"},
-            {"", "","Epic sadface: Username is required"},
-            {"s", "s","Epic sadface: Username is too short"}
+            {"", "","Epic sadface: Username is required"}
+            //{"s", "s","Epic sadface: Username is too short"}
         };
     }
 

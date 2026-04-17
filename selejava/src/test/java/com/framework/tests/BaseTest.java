@@ -21,14 +21,14 @@
 
         @BeforeSuite
         public void beforeSuite() {
-                        pdfReport = new ScreenshotPdfReport("TestExecutionReport.pdf");
+            pdfReport = new ScreenshotPdfReport("TestExecutionReport.pdf");
             ReportManager.initReports();
             log.info("Starting test suite execution");
         }
 
         @AfterSuite
         public void afterSuite() {
-                        pdfReport.generate();
+            pdfReport.generate();
             ReportManager.flushReports();
             log.info("Test suite execution completed");
         }
@@ -50,12 +50,15 @@
             if (result.getStatus() == ITestResult.FAILURE) {
                 String path = ScreenshotUtil.capture("FAILED_" + result.getName());
                 pdfReport.addScreenshot(path, "Test Failed — final state");
+                pdfReport.markFailed();
                 ReportManager.logScreenshot(path);
                 ReportManager.logFail("Test Failed - " + result.getName());
                 ReportManager.ErrorComponent(result.getThrowable().getMessage());
             }else if(result.getStatus() == ITestResult.SUCCESS){
+                pdfReport.markPassed();
                 ReportManager.logPass("Test Passed - " + result.getName());
             }else if(result.getStatus() == ITestResult.SKIP){
+                pdfReport.markSkipped();
                 ReportManager.logSkip("Test Skipped - " + result.getName());
             }
             //pdfReport.generate();

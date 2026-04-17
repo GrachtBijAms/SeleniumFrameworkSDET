@@ -30,6 +30,19 @@ public class ScreenshotPdfReport {
     private final List<ScreenshotEntry> entries = new ArrayList<>();
     private final String testName;
 
+        // Test result counters
+    private int passed  = 0;
+    private int failed  = 0;
+    private int skipped = 0;
+
+    // -------------------------------------------------------------------------
+    // Result tracking
+    // -------------------------------------------------------------------------
+
+    public void markPassed()  { passed++;  }
+    public void markFailed()  { failed++;  }
+    public void markSkipped() { skipped++; }
+
     public ScreenshotPdfReport(String testName) {
         this.testName = testName;
     }
@@ -78,7 +91,7 @@ public void addTestCaseTitle(String testName) {
      */
     public String generate() {
         if (entries.isEmpty()) {
-            log.warn("No screenshots to compile for test: {}", testName);
+            log.warn("No entries to compile into PDF report");
             return null;
         }
 
@@ -86,13 +99,14 @@ public void addTestCaseTitle(String testName) {
             Files.createDirectories(Paths.get(REPORT_DIR));
 
             String timestamp  = LocalDateTime.now().format(FORMATTER);
-            String outputPath = REPORT_DIR + testName + "_" + timestamp + ".pdf";
+            String outputPath = REPORT_DIR + testName +"_"+ timestamp + ".pdf";
 
             Document document = new Document(PageSize.A4, 20, 20, 20, 20);
             PdfWriter.getInstance(document, new FileOutputStream(outputPath));
             document.open();
 
-            addCoverPage(document);
+            addCoverPage(document);        // ← cover + pie chart
+            addSummaryTable(document);     // ← passed/failed/skipped table
 
             for (ScreenshotEntry entry : entries) {
                 addScreenshotPage(document, entry);
@@ -112,11 +126,16 @@ public void addTestCaseTitle(String testName) {
     // Private helpers
     // -------------------------------------------------------------------------
 
-    private void addCoverPage(Document document) throws DocumentException {
+    // -------------------------------------------------------------------------
+    // Cover page with pie chart
+    // -------------------------------------------------------------------------
+
+    private void addCoverPage(Document document) throws DocumentException, IOException {
         Font titleFont  = new Font(Font.FontFamily.HELVETICA, 22, Font.BOLD);
         Font normalFont = new Font(Font.FontFamily.HELVETICA, 12);
 
-        document.add(new Paragraph("\n\n\n"));
+        document.add(new Paragraph("\n\n"));
+
         Paragraph title = new Paragraph("Test Execution Report", titleFont);
         title.setAlignment(Element.ALIGN_CENTER);
         document.add(title);
@@ -124,16 +143,74 @@ public void addTestCaseTitle(String testName) {
         document.add(new Paragraph("\n"));
 
         Paragraph details = new Paragraph(
-            "Test: " + testName + "\n" +
-            "Generated: " + LocalDateTime.now().format(
+            "Test Name   : " + testName + "\n" +
+            "Generated : " + LocalDateTime.now().format(
                 DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss")
             ) + "\n" +
-            "Total Screenshots: " + entries.size(),
+            "Environment : " + ConfigReader.get("env")   + "\n" +
+            "Browser     : " + ConfigReader.get("browser"),
             normalFont
         );
         details.setAlignment(Element.ALIGN_CENTER);
         document.add(details);
+
+        document.add(new Paragraph("\n\n"));
+
+        // Pie chart
+        String chartPath = PieChartGenerator.generate(passed, failed, skipped);
+        if (chartPath != null) {
+            Image chart = Image.getInstance(chartPath);
+            chart.scaleToFit(400, 300);
+            chart.setAlignment(Element.ALIGN_CENTER);
+            document.add(chart);
+        }
+
         document.newPage();
+    }
+
+
+        // -------------------------------------------------------------------------
+    // Summary table — passed / failed / skipped counts
+    // -------------------------------------------------------------------------
+
+    private void addSummaryTable(Document document) throws DocumentException {
+        Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD,  BaseColor.WHITE);
+        Font cellFont   = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+
+        Paragraph heading = new Paragraph("Execution Summary", 
+            new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD));
+        heading.setSpacingAfter(10);
+        document.add(heading);
+
+        PdfPTable table = new PdfPTable(4);
+        table.setWidthPercentage(100);
+        table.setWidths(new float[]{3f, 1.5f, 1.5f, 1.5f});
+
+        // Header row
+        addTableCell(table, "Total Tests",  new BaseColor(52,  58,  64),  headerFont);
+        addTableCell(table, "Passed",       new BaseColor(40,  167, 69),  headerFont);
+        addTableCell(table, "Failed",       new BaseColor(220, 53,  69),  headerFont);
+        addTableCell(table, "Skipped",      new BaseColor(255, 193, 7),   headerFont);
+
+        // Value row
+        int total = passed + failed + skipped;
+        addTableCell(table, String.valueOf(total),   BaseColor.LIGHT_GRAY, cellFont);
+        addTableCell(table, String.valueOf(passed),  BaseColor.LIGHT_GRAY, cellFont);
+        addTableCell(table, String.valueOf(failed),  BaseColor.LIGHT_GRAY, cellFont);
+        addTableCell(table, String.valueOf(skipped), BaseColor.LIGHT_GRAY, cellFont);
+
+        document.add(table);
+        document.add(new Paragraph("\n"));
+        document.newPage();
+    }
+
+    private void addTableCell(PdfPTable table, String text,
+                               BaseColor bg, Font font) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setBackgroundColor(bg);
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cell.setPadding(10);
+        table.addCell(cell);
     }
 
 private void addScreenshotPage(Document document, ScreenshotEntry entry)
