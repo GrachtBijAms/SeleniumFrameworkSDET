@@ -1,0 +1,65 @@
+    package com.framework.tests;
+
+    import com.framework.utils.DriverManager;
+    import com.framework.utils.ReportManager;
+    import com.framework.utils.ScreenshotUtil;
+    import com.framework.utils.ScreenshotPdfReport;
+    import org.openqa.selenium.WebDriver;
+    import org.slf4j.Logger;
+    import org.slf4j.LoggerFactory;
+    import org.testng.ITestResult;
+    import org.testng.annotations.AfterMethod;
+    import org.testng.annotations.AfterSuite;
+    import org.testng.annotations.BeforeMethod;
+    import org.testng.annotations.BeforeSuite;
+    import java.lang.reflect.Method;  // ← Method
+
+    public class BaseTest {
+
+        private static final Logger log = LoggerFactory.getLogger(BaseTest.class);
+        protected ScreenshotPdfReport pdfReport;
+
+        @BeforeSuite
+        public void beforeSuite() {
+            ReportManager.initReports();
+            log.info("Starting test suite execution");
+        }
+
+        @AfterSuite
+        public void afterSuite() {
+            ReportManager.flushReports();
+            log.info("Test suite execution completed");
+        }
+
+
+
+        @BeforeMethod
+        public void setUp(Method method) {
+            DriverManager.initDriver();
+            ReportManager.createTest(method.getName());
+            ReportManager.logInfo("Test Started - " + method.getName());
+            pdfReport = new ScreenshotPdfReport(method.getName());
+            log.info("Test started: {}", method.getName());
+        }
+
+        @AfterMethod
+        public void tearDown(ITestResult result) {
+            if (result.getStatus() == ITestResult.FAILURE) {
+                String path = ScreenshotUtil.capture("FAILED_" + result.getName());
+                pdfReport.addScreenshot(path, "Test Failed — final state");
+                ReportManager.logScreenshot(path);
+                ReportManager.logFail("Test Failed - " + result.getName());
+                ReportManager.ErrorComponent(result.getThrowable().getMessage());
+            }else if(result.getStatus() == ITestResult.SUCCESS){
+                ReportManager.logPass("Test Passed - " + result.getName());
+            }else if(result.getStatus() == ITestResult.SKIP){
+                ReportManager.logSkip("Test Skipped - " + result.getName());
+            }
+            pdfReport.generate();
+            DriverManager.quitDriver();
+        } 
+
+        protected WebDriver getDriver() {
+            return DriverManager.getDriver();
+        }
+    }
