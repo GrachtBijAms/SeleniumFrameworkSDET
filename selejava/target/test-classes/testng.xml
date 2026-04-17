@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<suite name="Test Suite">
-    <test name="Test">
-        <classes>
-            <class name="com.framework.tests.AppTest"/>
-        </classes>
-    </test>
-</suite>
