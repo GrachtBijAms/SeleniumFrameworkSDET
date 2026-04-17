@@ -3,4 +3,4 @@
 /.vscode
 selejava/target/
 /extent-reports
-/test-output
+selejava/test-output/
