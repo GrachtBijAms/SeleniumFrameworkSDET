@@ -45,6 +45,17 @@ public class ScreenshotPdfReport {
         }
     }
 
+/**
+ * Adds a text-only step description to the report.
+ * No screenshot — just a labeled step entry in the PDF.
+ *
+ * @param stepDescription Human-readable step label
+ */
+public void addStep(String stepDescription) {
+    entries.add(new ScreenshotEntry(stepDescription));  // ← add to list, not toString
+    log.info("Added step to report: {}", stepDescription);
+}
+
     /**
      * Compiles all added screenshots into a single PDF report.
      * One screenshot per page, with step label as header.
@@ -111,21 +122,26 @@ public class ScreenshotPdfReport {
         document.newPage();
     }
 
-    private void addScreenshotPage(Document document, ScreenshotEntry entry)
-            throws DocumentException, IOException {
+private void addScreenshotPage(Document document, ScreenshotEntry entry)
+        throws DocumentException, IOException {
 
-        Font labelFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD);
-        Font pathFont  = new Font(Font.FontFamily.HELVETICA, 8,  Font.ITALIC, BaseColor.GRAY);
+    Font labelFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD);
+    Font pathFont  = new Font(Font.FontFamily.HELVETICA, 8,  Font.ITALIC, BaseColor.GRAY);
+    Font stepFont  = new Font(Font.FontFamily.HELVETICA, 11, Font.NORMAL, BaseColor.DARK_GRAY);
 
-        // Step label
-        Paragraph label = new Paragraph(entry.description, labelFont);
-        document.add(label);
+    if (entry.type == ScreenshotEntry.Type.TEXT) {
+        // Text-only entry — no image, no new page
+        Paragraph step = new Paragraph("► " + entry.description, stepFont);
+        step.setSpacingBefore(6);
+        step.setSpacingAfter(6);
+        document.add(step);
 
-        // File path (small, grey)
+    } else {
+        // Screenshot entry — label + image + new page
+        document.add(new Paragraph(entry.description, labelFont));
         document.add(new Paragraph(entry.path, pathFont));
         document.add(new Paragraph("\n"));
 
-        // Screenshot image — scaled to fit A4 width
         Image image = Image.getInstance(entry.path);
         image.scaleToFit(
             document.getPageSize().getWidth()  - 40,
@@ -133,21 +149,31 @@ public class ScreenshotPdfReport {
         );
         image.setAlignment(Element.ALIGN_CENTER);
         document.add(image);
-
         document.newPage();
     }
-
+}
     // -------------------------------------------------------------------------
     // Inner record
     // -------------------------------------------------------------------------
+private static class ScreenshotEntry {
+    enum Type { SCREENSHOT, TEXT }
 
-    private static class ScreenshotEntry {
-        final String path;
-        final String description;
+    final Type   type;
+    final String description;
+    final String path;          // null for TEXT entries
 
-        ScreenshotEntry(String path, String description) {
-            this.path        = path;
-            this.description = description;
-        }
+    // Screenshot entry
+    ScreenshotEntry(String path, String description) {
+        this.type        = Type.SCREENSHOT;
+        this.path        = path;
+        this.description = description;
     }
+
+    // Text-only entry
+    ScreenshotEntry(String description) {
+        this.type        = Type.TEXT;
+        this.path        = null;
+        this.description = description;
+    }
+}
 }

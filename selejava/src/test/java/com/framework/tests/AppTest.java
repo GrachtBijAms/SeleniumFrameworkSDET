@@ -19,8 +19,13 @@ public class AppTest extends BaseTest{
         // For example, you can create an instance of your LoginPage and call the login method.
          LoginPage loginPage = new LoginPage(getDriver());
          loginPage.navigateToLoginPage();
+          pdfReport.addStep("Step 1 — Navigated to login page"); 
          pdfReport.addScreenshot(ScreenshotUtil.capture("Navigate-to-LoginPage"), "Step Login Test Screenshot");
+         
          loginPage.login(AppConstants.VALID_USERNAME, AppConstants.VALID_PASSWORD);
+         pdfReport.addStep("Step 2 — Entered Valid Credentials");
+
+        pdfReport.addStep("Step 3 End");
          Assert.assertTrue(loginPage.isLoginHeaderDisplayed(), "Login header is not displayed, login might have failed.");
          pdfReport.addScreenshot(ScreenshotUtil.capture("Login Success"), "Step Login Test Screenshot");
 
