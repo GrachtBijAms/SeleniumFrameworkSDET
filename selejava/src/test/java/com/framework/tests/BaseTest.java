@@ -21,7 +21,7 @@
 
         @BeforeSuite
         public void beforeSuite() {
-            pdfReport = new ScreenshotPdfReport("TestExecutionReport.pdf");
+            pdfReport = new ScreenshotPdfReport("FullTestExecutionReport.pdf");
             ReportManager.initReports();
             log.info("Starting test suite execution");
         }
