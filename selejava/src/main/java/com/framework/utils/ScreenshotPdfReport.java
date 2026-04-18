@@ -148,7 +148,8 @@ public void addTestCaseTitle(String testName) {
                 DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss")
             ) + "\n" +
             "Environment : " + ConfigReader.get("env")   + "\n" +
-            "Browser     : " + ConfigReader.get("browser"),
+            "Browser     : " + ConfigReader.get("browser")+"\n"+
+            "System      : " + System.getProperty("os.name") + " " + System.getProperty("os.version"), 
             normalFont
         );
         details.setAlignment(Element.ALIGN_CENTER);
@@ -165,7 +166,6 @@ public void addTestCaseTitle(String testName) {
             document.add(chart);
         }
 
-        document.newPage();
     }
 
 
