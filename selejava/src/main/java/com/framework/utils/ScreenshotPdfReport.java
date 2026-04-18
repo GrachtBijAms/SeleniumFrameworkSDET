@@ -263,7 +263,7 @@ private void addScreenshotPage(Document document, ScreenshotEntry entry)
             );
             image.setAlignment(Element.ALIGN_CENTER);
             document.add(image);
-            document.newPage();
+           
         }
     }
 }
