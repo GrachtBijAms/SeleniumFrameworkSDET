@@ -4,6 +4,7 @@ package com.framework.utils;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
+import org.openqa.selenium.Dimension;
 
 public class ConfigReader {
 
@@ -39,4 +40,19 @@ public class ConfigReader {
     public static boolean getBoolean(String key) {
         return Boolean.parseBoolean(get(key));
     }
+
+    public static Dimension getDimension(String key) {
+        String value = get(key);
+        String[] parts = value.split(",");
+        if (parts.length != 2) {
+            throw new RuntimeException("❌ Invalid dimension format for key: " + key);
+        }
+        try {
+            int width = Integer.parseInt(parts[0].trim());
+            int height = Integer.parseInt(parts[1].trim());
+            return new Dimension(width, height);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("❌ Invalid number format in dimension for key: " + key);
+        }
+    }   
 }

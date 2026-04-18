@@ -46,7 +46,7 @@ public class DriverManager {
             .pageLoadTimeout(
                 Duration.ofSeconds(ConfigReader.getInt("page.load.timeout"))
             );
-
+        driver.manage().window().setSize(ConfigReader.getDimension("window.size")); // Set default window size for consistency
         driverThread.set(driver);
         log.info("Driver initialized: browser=[{}] headless=[{}] thread=[{}]",
             browser, headless, Thread.currentThread().getName());
