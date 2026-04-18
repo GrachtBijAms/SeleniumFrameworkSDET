@@ -5,6 +5,8 @@ package com.framework.tests;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.Assert;
+
+import com.framework.annotations.TestCaseName;
 import com.framework.constants.AppConstants;
 import com.framework.pages.LoginPage;
 import com.framework.utils.ScreenshotUtil;
@@ -14,6 +16,7 @@ import com.framework.utils.ScreenshotUtil;
 public class AppTest extends BaseTest{   
 
     @Test
+    @TestCaseName("Valid Login Test")
     public void loginTest() {
         // This is a placeholder test method. You can implement your login test here.
         // For example, you can create an instance of your LoginPage and call the login method.
