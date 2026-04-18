@@ -37,19 +37,20 @@ public class AppTest extends BaseTest{
     @DataProvider(name = "invalidCredentials")
     public Object[][] invalidCredentials() {
         return new Object[][] {
-            {"invalid_user", "invalid_password","Epic sadface: Username and password do not match any user in this service"},
-            {"", "invalid_password","Epic sadface: Username is required"},
-            {"invalid_user", "","Epic sadface: Password is required"},
-            {"", "","Epic sadface: Username is required"}
+            {"Invalid Credentials Test 1","invalid_user", "invalid_password","Epic sadface: Username and password do not match any user in this service"},
+            {"Invalid Credentials Test 2","", "invalid_password","Epic sadface: Username is required"},
+            {"Invalid Credentials Test 3","invalid_user", "","Epic sadface: Password is required"},
+            {"Invalid Credentials Test 4","", "","Epic sadface: Username is required"}
             //{"s", "s","Epic sadface: Username is too short"}
         };
     }
 
     @Test(dataProvider = "invalidCredentials")
-    public void isValidLoginTest(String username, String password, String expectedMessage) {
+    public void isValidLoginTest(String tcname,String username, String password, String expectedMessage) {
         // This is a placeholder test method. You can implement your invalid login test here.
         // For example, you can create an instance of your LoginPage and call the login method with invalid credentials.
-         LoginPage loginPage = new LoginPage(getDriver());
+        System.out.println("Running test case: " + tcname); 
+        LoginPage loginPage = new LoginPage(getDriver());
          pdfReport.addStep("Navigated to login page"); 
          loginPage.navigateToLoginPage();
          
@@ -60,7 +61,7 @@ public class AppTest extends BaseTest{
          
          Assert.assertEquals(loginPage.getErrorMessage(), expectedMessage, "Error message does not match expected message for invalid login.");
          pdfReport.addScreenshot(ScreenshotUtil.capture("invalidLoginTest"), "Invalid Login Test Screenshot");
-             pdfReport.addStep("Verified the error message");
+         pdfReport.addStep("Verified the error message");
     } 
 
 }

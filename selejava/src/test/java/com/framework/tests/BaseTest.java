@@ -22,10 +22,12 @@ import org.testng.ITestResult;
         protected ScreenshotPdfReport pdfReport;
 
         @BeforeMethod(alwaysRun = true)
-        public void setTestName(Method method) {
+        public void setTestName(Method method, Object[] testData) {
             String name = method.getName();
             if (method.isAnnotationPresent(com.framework.annotations.TestCaseName.class)) {
                 name = method.getAnnotation(com.framework.annotations.TestCaseName.class).value();
+            } else if (testData != null && testData.length > 0) {
+                name  = String.valueOf(testData[0]); // Use the first parameter as the test name if available
             }
             testName.set(name);
         }   
@@ -56,11 +58,11 @@ import org.testng.ITestResult;
         @BeforeMethod
         public void setUp(Method method) {
             DriverManager.initDriver();
-            pdfReport.addTestCaseTitle(testName.get());
-            ReportManager.createTest(testName.get());
-            ReportManager.logInfo("Test Started - " + testName.get());
+            pdfReport.addTestCaseTitle(getTestName());
+            ReportManager.createTest(getTestName());
+            ReportManager.logInfo("Test Started - " + getTestName());
 
-            log.info("Test started: {}", testName.get());
+            log.info("Test started: {}", getTestName());
         }
 
         @AfterMethod
@@ -79,7 +81,6 @@ import org.testng.ITestResult;
                 pdfReport.markSkipped();
                 ReportManager.logSkip("Test Skipped - " + result.getName());
             }
-            //pdfReport.generate();
             DriverManager.quitDriver();
         } 
 
