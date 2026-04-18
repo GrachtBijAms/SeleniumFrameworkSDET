@@ -1,90 +1,130 @@
-    package com.framework.tests;
+package com.framework.tests;
 
-    import com.framework.utils.DriverManager;
-    import com.framework.utils.ReportManager;
-    import com.framework.utils.ScreenshotUtil;
-    import com.framework.utils.ScreenshotPdfReport;
-    import org.openqa.selenium.WebDriver;
-    import org.slf4j.Logger;
-    import org.slf4j.LoggerFactory;
+import com.framework.utils.DriverManager;
+import com.framework.utils.ReportManager;
+import com.framework.utils.ScreenshotUtil;
+import com.framework.utils.ScreenshotPdfReport;
+import org.openqa.selenium.WebDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.ITest;
 import org.testng.ITestResult;
-    import org.testng.annotations.AfterMethod;
-    import org.testng.annotations.AfterSuite;
-    import org.testng.annotations.BeforeMethod;
-    import org.testng.annotations.BeforeSuite;
-    import java.lang.reflect.Method;  // ← Method
+import org.testng.annotations.*;
 
-    public class BaseTest implements ITest{
+import java.lang.reflect.Method;
 
-        private final ThreadLocal<String> testName = new ThreadLocal<>();   
-        private static final Logger log = LoggerFactory.getLogger(BaseTest.class);
-        protected ScreenshotPdfReport pdfReport;
+public class BaseTest implements ITest {
 
-        @BeforeMethod(alwaysRun = true)
-        public void setTestName(Method method, Object[] testData) {
-            String name = method.getName();
-            if (method.isAnnotationPresent(com.framework.annotations.TestCaseName.class)) {
-                name = method.getAnnotation(com.framework.annotations.TestCaseName.class).value();
-            } else if (testData != null && testData.length > 0) {
-                name  = String.valueOf(testData[0]); // Use the first parameter as the test name if available
-            }
-            testName.set(name);
-        }   
+    private static final Logger log = LoggerFactory.getLogger(BaseTest.class);
+    private final ThreadLocal<String> testName = new ThreadLocal<>();
 
-        @Override
-        public String getTestName() {
-            // This method can be enhanced to return a more descriptive name based on annotations or method names
-            return testName.get(); // Return the set test name
-        }
+    // Instance field — each test class gets its own PDF
+    protected ScreenshotPdfReport pdfReport;
 
+    // -------------------------------------------------------------------------
+    // ITest
+    // -------------------------------------------------------------------------
 
-        @BeforeSuite
-        public void beforeSuite() {
-            pdfReport = new ScreenshotPdfReport("FullTestExecutionReport.pdf");
-            ReportManager.initReports();
-            log.info("Starting test suite execution");
-        }
+    @Override
+    public String getTestName() {
+        String name = testName.get();
+        return (name != null) ? name : "UnknownTest";
+    }
 
-        @AfterSuite
-        public void afterSuite() {
-            pdfReport.generate();
-            ReportManager.flushReports();
-            log.info("Test suite execution completed");
-        }
+    // -------------------------------------------------------------------------
+    // Suite level — ExtentReport only, runs once
+    // -------------------------------------------------------------------------
 
+    @BeforeSuite(alwaysRun = true)
+    public void beforeSuite() {
+        ReportManager.initReports();
+        log.info("Test suite started");
+    }
 
+    @AfterSuite(alwaysRun = true)
+    public void afterSuite() {
+        ReportManager.flushReports();
+        log.info("Test suite completed");
+    }
 
-        @BeforeMethod
-        public void setUp(Method method) {
-            DriverManager.initDriver();
-            pdfReport.addTestCaseTitle(getTestName());
-            ReportManager.createTest(getTestName());
-            ReportManager.logInfo("Test Started - " + getTestName());
+    // -------------------------------------------------------------------------
+    // Class level — one PDF per test class
+    // -------------------------------------------------------------------------
 
-            log.info("Test started: {}", getTestName());
-        }
+    @BeforeClass(alwaysRun = true)
+    public void beforeClass() {
+        // getSimpleName() gives "AppTest", "InventoryTest" etc.
+        String className = getClass().getSimpleName();
+        pdfReport = new ScreenshotPdfReport(className);
+        log.info("PDF report initialized for class: {}", className);
+    }
 
-        @AfterMethod
-        public void tearDown(ITestResult result) {
-            if (result.getStatus() == ITestResult.FAILURE) {
-                String path = ScreenshotUtil.capture("FAILED_" + result.getName());
-                pdfReport.addScreenshot(path, "Test Failed — final state");
-                pdfReport.markFailed();
-                ReportManager.logScreenshot(path);
-                ReportManager.logFail("Test Failed - " + result.getName());
-                ReportManager.ErrorComponent(result.getThrowable().getMessage());
-            }else if(result.getStatus() == ITestResult.SUCCESS){
-                pdfReport.markPassed();
-                ReportManager.logPass("Test Passed - " + result.getName());
-            }else if(result.getStatus() == ITestResult.SKIP){
-                pdfReport.markSkipped();
-                ReportManager.logSkip("Test Skipped - " + result.getName());
-            }
-            DriverManager.quitDriver();
-        } 
-
-        protected WebDriver getDriver() {
-            return DriverManager.getDriver();
+    @AfterClass(alwaysRun = true)
+    public void afterClass() {
+        if (pdfReport != null) {
+            String path = pdfReport.generate();
+            log.info("PDF report saved for class [{}]: {}",
+                getClass().getSimpleName(), path);
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Method level — runs per test
+    // -------------------------------------------------------------------------
+
+    @BeforeMethod(alwaysRun = true)
+    public void setUp(Method method, Object[] testData) {
+        // Resolve display name
+        String name = method.getName();
+        if (method.isAnnotationPresent(
+                com.framework.annotations.TestCaseName.class)) {
+            name = method.getAnnotation(
+                com.framework.annotations.TestCaseName.class).value();
+        } else if (testData != null && testData.length > 0) {
+            name = String.valueOf(testData[0]);
+        }
+        testName.set(name);
+
+        // Driver
+        DriverManager.initDriver();
+
+        // Reports
+        pdfReport.addTestCaseTitle(getTestName());
+        ReportManager.createTest(getTestName());
+        ReportManager.logInfo("Test Started: " + getTestName());
+
+        log.info("Test started: {}", getTestName());
+    }
+
+    @AfterMethod(alwaysRun = true)
+    public void tearDown(ITestResult result) {
+        if (result.getStatus() == ITestResult.FAILURE) {
+            String path = ScreenshotUtil.capture("FAILED_" + getTestName());
+            pdfReport.addScreenshot(path, "Failure Screenshot — " + getTestName());
+            pdfReport.markFailed();
+            ReportManager.logScreenshot(path);
+            ReportManager.logFail("Test Failed: " + getTestName());
+            ReportManager.logError(result.getThrowable().getMessage());
+
+        } else if (result.getStatus() == ITestResult.SUCCESS) {
+            pdfReport.markPassed();
+            ReportManager.logPass("Test Passed: " + getTestName());
+
+        } else if (result.getStatus() == ITestResult.SKIP) {
+            pdfReport.markSkipped();
+            ReportManager.logSkip("Test Skipped: " + getTestName());
+        }
+
+        DriverManager.quitDriver();
+        testName.remove();
+        log.info("Test finished: {}", result.getName());
+    }
+
+    // -------------------------------------------------------------------------
+    // Accessor
+    // -------------------------------------------------------------------------
+
+    protected WebDriver getDriver() {
+        return DriverManager.getDriver();
+    }
+}

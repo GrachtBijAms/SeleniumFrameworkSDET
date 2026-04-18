@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<suite name="Test Suite">
+<suite name="Test Suite" parallel="false">
 <listeners>
 <listener class-name="com.framework.listeners.TestListener"/>
 </listeners>
@@ -7,6 +7,7 @@
     <test name="Saucedemo Test Suite">
         <classes>
             <class name="com.framework.tests.AppTest"/>
+            <class name="com.framework.tests.InventoryTest"/>
         </classes>
     </test>
 </suite>

@@ -1,79 +1,117 @@
-    // utils/ReportManager.java
-    package com.framework.utils;
+package com.framework.utils;
 
-    import com.aventstack.extentreports.*;
-    import com.aventstack.extentreports.reporter.ExtentSparkReporter;
-    import com.aventstack.extentreports.reporter.configuration.Theme;
+import com.aventstack.extentreports.ExtentReports;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.reporter.ExtentSparkReporter;
+import com.aventstack.extentreports.reporter.configuration.Theme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    public class ReportManager {
+public class ReportManager {
 
-        private static ExtentReports extent;
-        private static final ThreadLocal<ExtentTest> test = new ThreadLocal<>();
+    private static final Logger log = LoggerFactory.getLogger(ReportManager.class);
 
-        public static void initReports() {
-            String reportPath = ConfigReader.get("reports.path")
-                + "TestReport.html";
+    private static ExtentReports extent;
+    private static final ThreadLocal<ExtentTest> test = new ThreadLocal<>();
 
-            ExtentSparkReporter spark = new ExtentSparkReporter(reportPath);
-            spark.config().setTheme(Theme.STANDARD);
-            spark.config().setDocumentTitle("SDET Test Report");
-            spark.config().setReportName("Automation Results");
-            spark.config().setEncoding("utf-8");
-            spark.config().setTimelineEnabled(false);
+    private ReportManager() {}
 
-            extent = new ExtentReports();
-            extent.attachReporter(spark);
-            extent.setSystemInfo("Framework",    "Selenium + TestNG");
-            extent.setSystemInfo("OS",        System.getProperty("os.name"));
-            extent.setSystemInfo("Environment",  ConfigReader.get("env"));
-            extent.setSystemInfo("Browser",      ConfigReader.get("browser"));
-            extent.setSystemInfo("Tester",       "Test Automation Engineer");
+    // -------------------------------------------------------------------------
+    // Initialisation
+    // -------------------------------------------------------------------------
 
-            System.out.println("✅ Report initialized");
-        }
+    public static void initReports() {
+        String reportPath = ConfigReader.get("reports.path") + "TestReport.html";
 
-        public static void createTest(String testName) {
-            ExtentTest extentTest = extent.createTest(testName);
-            test.set(extentTest);
-        }
+        ExtentSparkReporter spark = new ExtentSparkReporter(reportPath);
+        spark.config().setTheme(Theme.STANDARD);
+        spark.config().setDocumentTitle("SDET Test Report");
+        spark.config().setReportName("Automation Results");
+        spark.config().setEncoding("utf-8");
+        spark.config().setTimelineEnabled(false);
 
-        public static ExtentTest getTest() {
-            return test.get();
-        }
+        extent = new ExtentReports();
+        extent.attachReporter(spark);
+        extent.setSystemInfo("Framework",   "Selenium + TestNG");
+        extent.setSystemInfo("OS",          System.getProperty("os.name"));
+        extent.setSystemInfo("Environment", ConfigReader.get("env"));
+        extent.setSystemInfo("Browser",     ConfigReader.get("browser"));
+        extent.setSystemInfo("Tester",      "Test Automation Engineer");
 
-        public static void flushReports() {
-            if (extent != null) {
-                extent.flush();
-                System.out.println("📊 Report saved");
-            }
-        }
+        log.info("ExtentReport initialized: {}", reportPath);
+    }
 
-        public static void logPass(String message) {
-            getTest().pass(message);
-        }
-
-        public static void logFail(String message) {
-            getTest().fail(message);
-        }
-
-        public static void logInfo(String message) {
-            getTest().info(message);
-        }
-
-        public static void logSkip(String message) {
-            getTest().skip(message);
-        }
-
-
-        public static void ErrorComponent(String failure) {
-            getTest().createNode("Error Message").fail(failure);
-        }
-
-        public static void logScreenshot(String path) {
-            try {
-                getTest().addScreenCaptureFromPath(path);
-            } catch (Exception e) {
-                System.out.println("❌ Could not attach screenshot to report");
-            }
+    public static void flushReports() {
+        if (extent != null) {
+            extent.flush();
+            log.info("ExtentReport saved");
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Test node
+    // -------------------------------------------------------------------------
+
+    public static void createTest(String testName) {
+        ExtentTest extentTest = extent.createTest(testName);
+        test.set(extentTest);
+        log.info("Test created in report: {}", testName);
+    }
+
+    public static ExtentTest getTest() {
+        ExtentTest extentTest = test.get();
+        if (extentTest == null) {
+            throw new IllegalStateException(
+                "ExtentTest not initialized for thread: "
+                + Thread.currentThread().getName()
+            );
+        }
+        return extentTest;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logging
+    // -------------------------------------------------------------------------
+
+    public static void logPass(String message) {
+        getTest().pass(message);
+    }
+
+    public static void logFail(String message) {
+        getTest().fail(message);
+    }
+
+    public static void logInfo(String message) {
+        getTest().info(message);
+    }
+
+    public static void logSkip(String message) {
+        getTest().skip(message);
+    }
+
+    /**
+     * Logs error details as a child node under the failed test.
+     * Use this after logFail() to show the exception message separately.
+     */
+    public static void logError(String message) {
+        getTest()
+            .createNode("Error Detail")
+            .fail("<b style='color:red'>Error:</b> " + message);
+    }
+
+    // -------------------------------------------------------------------------
+    // Screenshot
+    // -------------------------------------------------------------------------
+
+    public static void logScreenshot(String path) {
+        if (path == null) {
+            log.warn("Screenshot path is null — skipping attachment");
+            return;
+        }
+        try {
+            getTest().addScreenCaptureFromPath(path);
+        } catch (Exception e) {
+            log.error("Could not attach screenshot to report: {}", e.getMessage());
+        }
+    }
+}
