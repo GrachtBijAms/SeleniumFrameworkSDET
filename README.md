@@ -1,7 +1,8 @@
 # Selenium Framework SDET
 
 ## Overview
-This project is a Selenium-based test automation framework designed for Software Development Engineer in Test (SDET) roles. It provides a modular structure for managing test cases, utilities, and reports.
+This project is a Selenium-based test automation framework designed for Software Development Engineer in Test (SDET) roles. A **production-ready Page Object Model (POM)** framework for web UI automation using **Selenium WebDriver**, **TestNG**, and **Maven**. Designed for scalable, maintainable test automation with clean architecture and comprehensive reporting.
+
 
 ## Project Structure
 ```
@@ -30,6 +31,10 @@ selejava/
 │   │   ├── java/
 │   │   │   ├── com/
 │   │   │   │   ├── framework/
+│   │   │   │   │   ├── annotations/
+│   │   │   │   │   │   └── TestCaseName.java
+│   │   │   │   │   ├── listeners/
+│   │   │   │   │   │   └── TestListener.java
 │   │   │   │   │   ├── tests/
 │   │   │   │   │       ├── AppTest.java
 │   │   │   │   │       └── BaseTest.java
@@ -45,9 +50,10 @@ selejava/
 ## Features
 - **BasePage**: Provides common methods for interacting with web elements.
 - **Constants**: Stores application-wide constants.
-- **Pages**: Contains elements & methods for different tests depending on POM model
+- **Page Object Framework**: Each page = one class with business actions, locators abstracted.
 - **Utilities**: Includes helper classes for configuration, driver management, reporting, and more.
 - **Test Cases**: Organized under `tests` for modular and reusable test scripts.
+- **ExtentReports integration**: HTML reports with screenshots in `test-output/reports/`
 
 ## Prerequisites
 - Java Development Kit (JDK) 8 or higher
