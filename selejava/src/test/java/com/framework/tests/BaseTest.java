@@ -102,16 +102,19 @@ public class BaseTest implements ITest {
             String path = ScreenshotUtil.capture("FAILED_" + getTestName());
             pdfReport.addScreenshot(path, "Failure Screenshot — " + getTestName());
             pdfReport.markFailed();
+            pdfReport.addResultBadge(false);
             ReportManager.logScreenshot(path);
             ReportManager.logFail("Test Failed: " + getTestName());
             ReportManager.logError(result.getThrowable().getMessage());
 
         } else if (result.getStatus() == ITestResult.SUCCESS) {
             pdfReport.markPassed();
+            pdfReport.addResultBadge(true);
             ReportManager.logPass("Test Passed: " + getTestName());
 
         } else if (result.getStatus() == ITestResult.SKIP) {
             pdfReport.markSkipped();
+            pdfReport.addStep("SKIPPED : " +getTestName());
             ReportManager.logSkip("Test Skipped: " + getTestName());
         }
 

@@ -82,6 +82,17 @@ public class ScreenshotPdfReport {
             log.info("Screenshot added: [{}] {}", stepDescription, screenshotPath);
         }
     }
+    /**
+ * Adds a coloured PASSED or FAILED result badge as a step entry.
+ * Call this at the end of tearDown after marking the result.
+ *
+ * @param passed true = green PASSED badge, false = red FAILED badge
+ */
+public void addResultBadge(boolean passed) {
+    String label = passed ? "✔ PASSED" : "✘ FAILED";
+    entries.add(new ScreenshotEntry(label, ScreenshotEntry.Type.RESULT));
+    log.info("Result badge added: {}", label);
+}
 
     // -------------------------------------------------------------------------
     // Generate PDF
@@ -165,7 +176,6 @@ public class ScreenshotPdfReport {
             document.add(chart);
         }
 
-        document.newPage();   // ← cover page ends here
     }
 
     // -------------------------------------------------------------------------
@@ -265,8 +275,32 @@ public class ScreenshotPdfReport {
                 );
                 image.setAlignment(Element.ALIGN_CENTER);
                 document.add(image);
-                document.newPage();   // ← each screenshot on its own page
+                document.add(new Paragraph("\n"));  // ← each screenshot on its own page
             }
+            case RESULT -> {
+    boolean isPass = entry.description.contains("PASSED");
+
+    BaseColor bgColor   = isPass
+        ? new BaseColor(40,  167, 69)    // green
+        : new BaseColor(220, 53,  69);   // red
+
+    Font badgeFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, BaseColor.WHITE);
+
+    PdfPTable badge = new PdfPTable(1);
+    badge.setWidthPercentage(30);        // ← badge width, not full line
+    badge.setHorizontalAlignment(Element.ALIGN_LEFT);
+
+    PdfPCell cell = new PdfPCell(new Phrase(entry.description, badgeFont));
+    cell.setBackgroundColor(bgColor);
+    cell.setPadding(6);
+    cell.setBorder(Rectangle.NO_BORDER);
+    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+    badge.addCell(cell);
+
+    document.add(new Paragraph("\n"));
+    document.add(badge);
+    document.add(new Paragraph("\n"));
+}
         }
     }
 
@@ -276,7 +310,7 @@ public class ScreenshotPdfReport {
 
     private static class ScreenshotEntry {
 
-        enum Type { TITLE, SCREENSHOT, TEXT }
+        enum Type { TITLE, SCREENSHOT, TEXT, RESULT }
 
         final Type   type;
         final String description;
