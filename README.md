@@ -44,8 +44,8 @@ selejava/
 
 ## Features
 - **BasePage**: Provides common methods for interacting with web elements.
-- **AppConstants**: Stores application-wide constants.
-- **LoginPage**: Contains methods for login-related test cases.
+- **Constants**: Stores application-wide constants.
+- **Pages**: Contains elements & methods for different tests depending on POM model
 - **Utilities**: Includes helper classes for configuration, driver management, reporting, and more.
 - **Test Cases**: Organized under `tests` for modular and reusable test scripts.
 
