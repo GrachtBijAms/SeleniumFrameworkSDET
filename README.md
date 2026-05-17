@@ -1,5 +1,11 @@
 # Selenium Framework SDET
 
+![Selenium CI](https://github.com/GrachtBijAms/SeleniumJava/actions/workflows/maven.yml/badge.svg)
+![Java](https://img.shields.io/badge/Java-ED8B00?style=flat&logo=openjdk&logoColor=white)
+![Selenium](https://img.shields.io/badge/Selenium-43B02A?style=flat&logo=selenium&logoColor=white)
+![TestNG](https://img.shields.io/badge/TestNG-FF6C37?style=flat&logo=testng&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-C71A36?style=flat&logo=apachemaven&logoColor=white)
+
 ## Overview
 This project is a Selenium-based test automation framework designed for Software Development Engineer in Test (SDET) roles. A **production-ready Page Object Model (POM)** framework for web UI automation using **Selenium WebDriver**, **TestNG**, and **Maven**. Designed for scalable, maintainable test automation with clean architecture and comprehensive reporting.
 
